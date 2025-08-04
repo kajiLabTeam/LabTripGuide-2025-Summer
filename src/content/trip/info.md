@@ -6,7 +6,7 @@ location: "岐阜県飛騨市・高山市"
 participants: "研究室メンバー"
 transportation: "車"
 duration: "2日間"
-heroImage: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+heroImage: "./hero-bg.jpg"
 tags: ["自然", "グルメ", "文化", "友情"]
 ---
 
