@@ -1,29 +1,168 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+// デバッグ情報を追加
+console.log('コンテンツコレクションを読み込み中...');
+
+// Markdownファイルからデータを読み込み
+const tripInfo = await getCollection('trip');
+const scheduleData = await getCollection('trip');
+const spotsData = await getCollection('trip');
+
+console.log('tripInfo:', tripInfo);
+console.log('scheduleData:', scheduleData);
+console.log('spotsData:', spotsData);
+
+// 特定のファイルをフィルタリング
+const info = tripInfo.find(item => item.id === 'info.md');
+const schedule = scheduleData.find(item => item.id === 'schedule.md');
+const spots = spotsData.find(item => item.id === 'spots.md');
+
+// データが存在しない場合のフォールバック
+if (!info) {
+  throw new Error('info.mdファイルが見つかりません');
+}
+if (!schedule) {
+  throw new Error('schedule.mdファイルが見つかりません');
+}
+if (!spots) {
+  throw new Error('spots.mdファイルが見つかりません');
+}
+
+// スケジュールデータを解析
+const scheduleContent = schedule.body;
+const day1Match = scheduleContent.match(/# 一日目\n([\s\S]*?)(?=# 二日目|$)/);
+const day2Match = scheduleContent.match(/# 二日目\n([\s\S]*?)$/);
+
+const parseScheduleItems = (content: string) => {
+  const items: Array<{
+    time: string;
+    title: string;
+    details: string[];
+    participants: string;
+    link: string;
+  }> = [];
+  const lines = content.split('\n');
+  let currentItem: any = null;
+  
+  for (const line of lines) {
+    const timeMatch = line.match(/^## (\d{1,2}:\d{2}) - (.+)$/);
+    if (timeMatch) {
+      if (currentItem) items.push(currentItem);
+      currentItem = {
+        time: timeMatch[1],
+        title: timeMatch[2],
+        details: [],
+        participants: '',
+        link: ''
+      };
+    } else if (currentItem && line.trim().startsWith('-')) {
+      const detail = line.trim().substring(1).trim();
+      if (detail.includes('**参加者**:')) {
+        currentItem.participants = detail.split('**参加者**:')[1].trim();
+      } else if (detail.includes('**詳細**:')) {
+        currentItem.details.push(detail.split('**詳細**:')[1].trim());
+      } else if (detail.includes('**リンク**:')) {
+        currentItem.link = detail.split('**リンク**:')[1].trim();
+      }
+    }
+  }
+  if (currentItem) items.push(currentItem);
+  return items;
+};
+
+const day1Items = day1Match ? parseScheduleItems(day1Match[1]) : [];
+const day2Items = day2Match ? parseScheduleItems(day2Match[1]) : [];
+
+// 観光スポットデータを解析
+const spotsContent = spots.body;
+const spotsSections = spotsContent.split(/# /).filter((section: string) => section.trim());
+
+const parseSpots = (content: string) => {
+  const spots: Array<{
+    title: string;
+    icon: string;
+    description: string;
+    link: string;
+    category: string;
+    subSpots: string[];
+  }> = [];
+  const sections = content.split('## ').filter((section: string) => section.trim());
+  
+  for (const section of sections) {
+    const lines = section.split('\n');
+    const title = lines[0].trim();
+    const spot: {
+      title: string;
+      icon: string;
+      description: string;
+      link: string;
+      category: string;
+      subSpots: string[];
+    } = {
+      title,
+      icon: '🏛️',
+      description: '',
+      link: '',
+      category: '',
+      subSpots: []
+    };
+    
+    for (const line of lines.slice(1)) {
+      if (line.includes('**アイコン**:')) {
+        spot.icon = line.split('**アイコン**:')[1].trim();
+      } else if (line.includes('**説明**:')) {
+        spot.description = line.split('**説明**:')[1].trim();
+      } else if (line.includes('**リンク**:')) {
+        spot.link = line.split('**リンク**:')[1].trim();
+      } else if (line.includes('**カテゴリ**:')) {
+        spot.category = line.split('**カテゴリ**:')[1].trim();
+      } else if (line.includes('**スポット**:')) {
+        // サブスポットの処理
+        const subSpotsMatch = section.match(/\*\*スポット\*\*:\n((?:  - .*\n?)*)/);
+        if (subSpotsMatch) {
+          const subSpotsLines = subSpotsMatch[1].split('\n').filter((line: string) => line.trim().startsWith('  - '));
+          spot.subSpots = subSpotsLines.map((line: string) => line.trim().substring(4));
+        }
+      }
+    }
+    
+    if (spot.title && spot.description) {
+      spots.push(spot);
+    }
+  }
+  
+  return spots;
+};
+
+const allSpots = parseSpots(spotsContent);
+const mainSpots = allSpots.filter(spot => !spot.title.includes('帰り道'));
+const returnSpots = allSpots.filter(spot => spot.title.includes('帰り道') || spot.category === '帰り道');
 ---
 
-<Layout title="飛騨高山研究室旅行 - 旅のしおり">
+<Layout title={info.data.title}>
   <!-- ヒーローセクション -->
   <section class="relative h-screen flex items-center justify-center overflow-hidden">
     <!-- 背景画像とオーバーレイ -->
     <div class="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-purple-900/80 z-10"></div>
-    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center bg-no-repeat"></div>
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style={`background-image: url('${info.data.heroImage}')`}></div>
     
     <!-- メインコンテンツ -->
     <div class="relative z-20 text-center text-white px-4">
       <h1 class="text-6xl md:text-8xl font-bold mb-6 animate-fade-in">
-        🗻 飛騨高山
+        🗻 {info.data.title.split(' ')[0]}
       </h1>
       <h2 class="text-4xl md:text-6xl font-light mb-8 animate-fade-in-delay">
-        研究室旅行
+        {info.data.title.split(' ').slice(1).join(' ')}
       </h2>
       <p class="text-xl md:text-2xl mb-12 opacity-90 animate-fade-in-delay-2">
-        2025年夏の思い出作り
+        {info.data.subtitle}
       </p>
       <div class="flex flex-wrap justify-center gap-6 text-sm md:text-base">
-        <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">📅 2025年8月</span>
-        <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">📍 岐阜県飛騨市・高山市</span>
-        <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">👥 研究室メンバー</span>
+        <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">📅 {info.data.date}</span>
+        <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">📍 {info.data.location}</span>
+        <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">👥 {info.data.participants}</span>
       </div>
     </div>
     
@@ -58,7 +197,7 @@ import Layout from '../layouts/Layout.astro';
     <section id="schedule" class="mb-24">
       <div class="text-center mb-16">
         <h2 class="text-5xl font-bold text-gray-800 mb-4">📅 スケジュール</h2>
-        <p class="text-xl text-gray-600">2日間の楽しい旅の予定</p>
+        <p class="text-xl text-gray-600">{schedule.data.description}</p>
       </div>
       
       <!-- 一日目 -->
@@ -70,54 +209,38 @@ import Layout from '../layouts/Layout.astro';
           <h3 class="text-3xl font-bold text-blue-600">一日目</h3>
         </div>
         <div class="grid md:grid-cols-2 gap-8">
-          <div class="space-y-6">
+          {day1Items.slice(0, Math.ceil(day1Items.length / 2)).map((item, index) => (
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                <span class="font-bold text-blue-600">13:00</span>
+                <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-blue-500' : index % 4 === 1 ? 'bg-green-500' : index % 4 === 2 ? 'bg-purple-500' : 'bg-orange-500'}`}></div>
+                <span class={`font-bold ${index % 4 === 0 ? 'text-blue-600' : index % 4 === 1 ? 'text-green-600' : index % 4 === 2 ? 'text-purple-600' : 'text-orange-600'}`}>{item.time}</span>
               </div>
-              <h4 class="text-lg font-semibold mb-2">スーパーカミオカンデ集合</h4>
-              <p class="text-gray-600 mb-3">宇宙線を可視化する世界的施設</p>
-              <a href="https://www-sk.icrr.u-tokyo.ac.jp/sk/" target="_blank" class="text-blue-600 hover:underline text-sm">
-                詳細を見る →
-              </a>
+              <h4 class="text-lg font-semibold mb-2">{item.title}</h4>
+              <p class="text-gray-600 mb-3">{item.details.join(', ')}</p>
+              {item.link && (
+                <a href={item.link} target="_blank" class="text-blue-600 hover:underline text-sm">
+                  詳細を見る →
+                </a>
+              )}
             </div>
-            
+          ))}
+        </div>
+        <div class="grid md:grid-cols-2 gap-8 mt-8">
+          {day1Items.slice(Math.ceil(day1Items.length / 2)).map((item, index) => (
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                <span class="font-bold text-green-600">17:00</span>
+                <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-blue-500' : index % 4 === 1 ? 'bg-green-500' : index % 4 === 2 ? 'bg-purple-500' : 'bg-orange-500'}`}></div>
+                <span class={`font-bold ${index % 4 === 0 ? 'text-blue-600' : index % 4 === 1 ? 'text-green-600' : index % 4 === 2 ? 'text-purple-600' : 'text-orange-600'}`}>{item.time}</span>
               </div>
-              <h4 class="text-lg font-semibold mb-2">宿着</h4>
-              <p class="text-gray-600 mb-3">みんなで宿に到着</p>
-              <a href="https://maps.app.goo.gl/s6vzWKBscRW8Sb2P6" target="_blank" class="text-blue-600 hover:underline text-sm">
-                地図を見る →
-              </a>
+              <h4 class="text-lg font-semibold mb-2">{item.title}</h4>
+              <p class="text-gray-600 mb-3">{item.details.join(', ')}</p>
+              {item.link && (
+                <a href={item.link} target="_blank" class="text-blue-600 hover:underline text-sm">
+                  詳細を見る →
+                </a>
+              )}
             </div>
-          </div>
-          
-          <div class="space-y-6">
-            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                <span class="font-bold text-purple-600">17:30</span>
-              </div>
-              <h4 class="text-lg font-semibold mb-2">お料理 vs 銭湯</h4>
-              <p class="text-gray-600 mb-3">お料理メンバーと銭湯メンバーに分かれて</p>
-              <a href="https://yutopia-takayama.net/" target="_blank" class="text-blue-600 hover:underline text-sm">
-                銭湯詳細 →
-              </a>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
-                <span class="font-bold text-orange-600">18:30</span>
-              </div>
-              <h4 class="text-lg font-semibold mb-2">クイズ大会</h4>
-              <p class="text-gray-600 mb-3">みんなで楽しいクイズ大会</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -130,48 +253,38 @@ import Layout from '../layouts/Layout.astro';
           <h3 class="text-3xl font-bold text-green-600">二日目</h3>
         </div>
         <div class="grid md:grid-cols-2 gap-8">
-          <div class="space-y-6">
+          {day2Items.slice(0, Math.ceil(day2Items.length / 2)).map((item, index) => (
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                <span class="font-bold text-green-600">8:30</span>
+                <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-green-500' : index % 4 === 1 ? 'bg-red-500' : index % 4 === 2 ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                <span class={`font-bold ${index % 4 === 0 ? 'text-green-600' : index % 4 === 1 ? 'text-red-600' : index % 4 === 2 ? 'text-blue-600' : 'text-purple-600'}`}>{item.time}</span>
               </div>
-              <h4 class="text-lg font-semibold mb-2">起床</h4>
-              <p class="text-gray-600 mb-3">みんなで朝を迎える</p>
+              <h4 class="text-lg font-semibold mb-2">{item.title}</h4>
+              <p class="text-gray-600 mb-3">{item.details.join(', ')}</p>
+              {item.link && (
+                <a href={item.link} target="_blank" class="text-blue-600 hover:underline text-sm">
+                  詳細を見る →
+                </a>
+              )}
             </div>
-            
+          ))}
+        </div>
+        <div class="grid md:grid-cols-2 gap-8 mt-8">
+          {day2Items.slice(Math.ceil(day2Items.length / 2)).map((item, index) => (
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
-                <span class="font-bold text-red-600">11:30</span>
+                <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-green-500' : index % 4 === 1 ? 'bg-red-500' : index % 4 === 2 ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                <span class={`font-bold ${index % 4 === 0 ? 'text-green-600' : index % 4 === 1 ? 'text-red-600' : index % 4 === 2 ? 'text-blue-600' : 'text-purple-600'}`}>{item.time}</span>
               </div>
-              <h4 class="text-lg font-semibold mb-2">高山陣屋集合写真</h4>
-              <p class="text-gray-600 mb-3">全員で動きます・離れたらまじで許さん</p>
-              <a href="https://maps.app.goo.gl/USovHz8xRGPfBEu17" target="_blank" class="text-blue-600 hover:underline text-sm">
-                地図を見る →
-              </a>
+              <h4 class="text-lg font-semibold mb-2">{item.title}</h4>
+              <p class="text-gray-600 mb-3">{item.details.join(', ')}</p>
+              {item.link && (
+                <a href={item.link} target="_blank" class="text-blue-600 hover:underline text-sm">
+                  詳細を見る →
+                </a>
+              )}
             </div>
-          </div>
-          
-          <div class="space-y-6">
-            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                <span class="font-bold text-blue-600">12:00~</span>
-              </div>
-              <h4 class="text-lg font-semibold mb-2">自由行動</h4>
-              <p class="text-gray-600 mb-3">各自に行きたいところに</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div class="flex items-center mb-4">
-                <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                <span class="font-bold text-purple-600">17:00</span>
-              </div>
-              <h4 class="text-lg font-semibold mb-2">解散</h4>
-              <p class="text-gray-600 mb-3">このぐらいの時間を目処に解散</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -180,150 +293,77 @@ import Layout from '../layouts/Layout.astro';
     <section id="spots" class="mb-24">
       <div class="text-center mb-16">
         <h2 class="text-5xl font-bold text-gray-800 mb-4">🏛️ 観光スポット</h2>
-        <p class="text-xl text-gray-600">飛騨高山の魅力を満喫</p>
+        <p class="text-xl text-gray-600">{spots.data.description}</p>
       </div>
       
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- 高山市街 -->
-        <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-          <div class="h-48 bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
-            <span class="text-6xl">🏘️</span>
+        {mainSpots.map((spot, index) => (
+          <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
+            <div class={`h-48 bg-gradient-to-br flex items-center justify-center ${
+              index % 6 === 0 ? 'from-blue-400 to-purple-600' :
+              index % 6 === 1 ? 'from-pink-400 to-red-600' :
+              index % 6 === 2 ? 'from-green-400 to-blue-600' :
+              index % 6 === 3 ? 'from-purple-400 to-indigo-600' :
+              index % 6 === 4 ? 'from-yellow-400 to-orange-600' :
+              'from-red-400 to-pink-600'
+            }`}>
+              <span class="text-6xl">{spot.icon}</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-4">{spot.title}</h3>
+              <p class="text-gray-600 mb-4">{spot.description}</p>
+              {spot.subSpots && spot.subSpots.length > 0 && (
+                <ul class="text-gray-600 mb-4 space-y-2 text-sm">
+                  {spot.subSpots.map((subSpot: string) => (
+                    <li>• {subSpot}</li>
+                  ))}
+                </ul>
+              )}
+              {spot.link && (
+                <a href={spot.link} target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+                  詳細を見る
+                  <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </a>
+              )}
+            </div>
           </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">高山市街</h3>
-            <p class="text-gray-600 mb-4">古い街並みと美味しいご飯が楽しめる場所</p>
-            <a href="https://www.hidatakayama.or.jp/area/kyu-takayama/" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-              詳細を見る
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- 君の名は。聖地 -->
-        <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-          <div class="h-48 bg-gradient-to-br from-pink-400 to-red-600 flex items-center justify-center">
-            <span class="text-6xl">🎬</span>
-          </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">君の名は。聖地</h3>
-            <ul class="text-gray-600 mb-4 space-y-2 text-sm">
-              <li>• 飛騨市図書館</li>
-              <li>• 飛騨古川駅</li>
-              <li>• 気多若宮神社</li>
-            </ul>
-            <a href="https://www.miyakohotels.ne.jp/gifu/tourism_information_hidakankou/" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-              詳細を見る
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- ガッタンゴー -->
-        <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-          <div class="h-48 bg-gradient-to-br from-green-400 to-blue-600 flex items-center justify-center">
-            <span class="text-6xl">🚴</span>
-          </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">ガッタンゴー</h3>
-            <p class="text-gray-600 mb-4">廃線跡を自転車で走るアクティビティ</p>
-            <a href="https://rail-mtb.com/" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-              詳細を見る
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- カミオカラボ・カミオカンデ -->
-        <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-          <div class="h-48 bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center">
-            <span class="text-6xl">🔬</span>
-          </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">カミオカラボ・カミオカンデ</h3>
-            <p class="text-gray-600 mb-4">宇宙線を可視化する世界的施設</p>
-            <a href="https://www.city.hida.gifu.jp/site/kamiokalab/" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-              詳細を見る
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- 桜山風鈴まつり -->
-        <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-          <div class="h-48 bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center">
-            <span class="text-6xl">🎐</span>
-          </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">桜山風鈴まつり</h3>
-            <p class="text-gray-600 mb-4">美しい風鈴の音色を楽しめる祭り</p>
-            <a href="https://www.hidatakayama.or.jp/event/detail_2048.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-              詳細を見る
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- 馬頭絵馬市 -->
-        <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-          <div class="h-48 bg-gradient-to-br from-red-400 to-pink-600 flex items-center justify-center">
-            <span class="text-6xl">🐴</span>
-          </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">馬頭絵馬市</h3>
-            <p class="text-gray-600 mb-4">伝統的な絵馬市</p>
-            <a href="https://www.hidatakayama.or.jp/event/detail_2023.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-              詳細を見る
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
+        ))}
       </div>
 
       <!-- 帰り道セクション -->
-      <div class="mt-20">
-        <div class="text-center mb-12">
-          <h3 class="text-4xl font-bold text-gray-800 mb-4">🛣️ 帰り道</h3>
-          <p class="text-xl text-gray-600">帰りも楽しいスポット</p>
-        </div>
-        <div class="grid md:grid-cols-2 gap-8">
-          <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-            <div class="h-48 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
-              <span class="text-6xl">🏯</span>
-            </div>
-            <div class="p-6">
-              <h4 class="text-xl font-bold text-gray-800 mb-4">郡上八幡城</h4>
-              <p class="text-gray-600 mb-4">美しい城郭建築</p>
-              <a href="https://hachiman-castle.com/" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-                詳細を見る
-                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </a>
-            </div>
+      {returnSpots.length > 0 && (
+        <div class="mt-20">
+          <div class="text-center mb-12">
+            <h3 class="text-4xl font-bold text-gray-800 mb-4">🛣️ 帰り道</h3>
+            <p class="text-xl text-gray-600">帰りも楽しいスポット</p>
           </div>
-          <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-            <div class="h-48 bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center">
-              <span class="text-6xl">🏛️</span>
-            </div>
-            <div class="p-6">
-              <h4 class="text-xl font-bold text-gray-800 mb-4">白山文化博物館</h4>
-              <p class="text-gray-600 mb-4">歴史の教科書に載っている傘連判状を見られる</p>
-            </div>
+          <div class="grid md:grid-cols-2 gap-8">
+            {returnSpots.map((spot, index) => (
+              <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
+                <div class={`h-48 bg-gradient-to-br flex items-center justify-center ${
+                  index % 2 === 0 ? 'from-gray-400 to-gray-600' : 'from-yellow-400 to-amber-600'
+                }`}>
+                  <span class="text-6xl">{spot.icon}</span>
+                </div>
+                <div class="p-6">
+                  <h4 class="text-xl font-bold text-gray-800 mb-4">{spot.title}</h4>
+                  <p class="text-gray-600 mb-4">{spot.description}</p>
+                  {spot.link && (
+                    <a href={spot.link} target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+                      詳細を見る
+                      <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </section>
 
     <!-- 基本情報セクション -->
@@ -342,19 +382,19 @@ import Layout from '../layouts/Layout.astro';
           <ul class="space-y-4 text-gray-700">
             <li class="flex items-center">
               <span class="w-3 h-3 bg-blue-500 rounded-full mr-4"></span>
-              <strong class="mr-2">期間:</strong> 2025年8月（2日間）
+              <strong class="mr-2">期間:</strong> {info.data.duration}
             </li>
             <li class="flex items-center">
               <span class="w-3 h-3 bg-blue-500 rounded-full mr-4"></span>
-              <strong class="mr-2">目的地:</strong> 岐阜県飛騨市・高山市
+              <strong class="mr-2">目的地:</strong> {info.data.location}
             </li>
             <li class="flex items-center">
               <span class="w-3 h-3 bg-blue-500 rounded-full mr-4"></span>
-              <strong class="mr-2">参加者:</strong> 研究室メンバー
+              <strong class="mr-2">参加者:</strong> {info.data.participants}
             </li>
             <li class="flex items-center">
               <span class="w-3 h-3 bg-blue-500 rounded-full mr-4"></span>
-              <strong class="mr-2">交通手段:</strong> 車
+              <strong class="mr-2">交通手段:</strong> {info.data.transportation}
             </li>
           </ul>
         </div>
@@ -389,14 +429,9 @@ import Layout from '../layouts/Layout.astro';
     <!-- フッター -->
     <footer class="text-center py-16">
       <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 text-white">
-        <h3 class="text-3xl font-bold mb-4">🗻 飛騨高山研究室旅行</h3>
+        <h3 class="text-3xl font-bold mb-4">🗻 {info.data.title}</h3>
         <p class="text-xl opacity-90">素晴らしい思い出を作りましょう！</p>
-        <div class="mt-8 flex justify-center space-x-4">
-          <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">🏔️ 自然</span>
-          <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">🍜 グルメ</span>
-          <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">🎭 文化</span>
-          <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">👥 友情</span>
-        </div>
+
       </div>
     </footer>
   </div>
