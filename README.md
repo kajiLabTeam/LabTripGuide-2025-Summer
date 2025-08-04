@@ -1,43 +1,47 @@
-# Astro Starter Kit: Minimal
+# 🗻 飛騨高山研究室旅行 - 旅のしおり
 
-```sh
-npm create astro@latest -- --template minimal
+このプロジェクトは、2025年夏の飛騨高山研究室旅行のための美しいWebサイトです。AstroとTailwind CSSを使用して作成されています。
+
+## 🚀 開発サーバーの起動
+
+```bash
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+開発サーバーが起動したら、ブラウザで `http://localhost:4321` にアクセスしてください。
 
-## 🚀 Project Structure
+## 📁 プロジェクト構造
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
+```
+hidatakayama-web-book/
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── layouts/
+│   │   └── Layout.astro          # メインレイアウト
+│   ├── pages/
+│   │   └── index.astro           # メインページ
+│   └── styles/
+│       └── global.css            # Tailwind CSS
+├── public/
+│   └── favicon.svg               # ファビコン
+└── docs/                         # 元のMarkdownファイル
+    ├── スケジュール.md
+    └── 観光地まとめ.md
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🎨 機能
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+- 📅 詳細なスケジュール表
+- 🏛️ 観光スポット情報
+- ℹ️ 基本情報と注意事項
+- 📱 レスポンシブデザイン
+- 🎯 スムーズなナビゲーション
 
-Any static assets, like images, can be placed in the `public/` directory.
+## 🛠️ 技術スタック
 
-## 🧞 Commands
+- **Astro** - 静的サイトジェネレーター
+- **Tailwind CSS** - スタイリング
+- **TypeScript** - 型安全性
 
-All commands are run from the root of the project, from a terminal:
+## 📝 ライセンス
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+このプロジェクトは研究室旅行用に作成されています。
