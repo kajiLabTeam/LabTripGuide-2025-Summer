@@ -114,6 +114,7 @@ const parseSpots = (content: string) => {
   const spots: Array<{
     title: string;
     icon: string;
+    backgroundImage: string;
     description: string;
     link: string;
     category: string;
@@ -127,6 +128,7 @@ const parseSpots = (content: string) => {
     const spot: {
       title: string;
       icon: string;
+      backgroundImage: string;
       description: string;
       link: string;
       category: string;
@@ -134,6 +136,7 @@ const parseSpots = (content: string) => {
     } = {
       title,
       icon: '🏛️',
+      backgroundImage: '',
       description: '',
       link: '',
       category: '',
@@ -143,6 +146,8 @@ const parseSpots = (content: string) => {
     for (const line of lines.slice(1)) {
       if (line.includes('**アイコン**:')) {
         spot.icon = line.split('**アイコン**:')[1].trim();
+      } else if (line.includes('**背景画像**:')) {
+        spot.backgroundImage = line.split('**背景画像**:')[1].trim();
       } else if (line.includes('**説明**:')) {
         spot.description = line.split('**説明**:')[1].trim();
       } else if (line.includes('**リンク**:')) {
@@ -328,15 +333,22 @@ const returnSpots = allSpots.filter(spot => spot.title.includes('帰り道') || 
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {mainSpots.map((spot, index) => (
           <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-            <div class={`h-48 bg-gradient-to-br flex items-center justify-center ${
-              index % 6 === 0 ? 'from-blue-400 to-purple-600' :
-              index % 6 === 1 ? 'from-pink-400 to-red-600' :
-              index % 6 === 2 ? 'from-green-400 to-blue-600' :
-              index % 6 === 3 ? 'from-purple-400 to-indigo-600' :
-              index % 6 === 4 ? 'from-yellow-400 to-orange-600' :
-              'from-red-400 to-pink-600'
-            }`}>
-              <span class="text-6xl">{spot.icon}</span>
+            <div class={`h-48 flex items-center justify-center relative overflow-hidden ${
+              spot.backgroundImage ? 'bg-cover bg-center' : 
+              index % 6 === 0 ? 'bg-gradient-to-br from-blue-400 to-purple-600' :
+              index % 6 === 1 ? 'bg-gradient-to-br from-pink-400 to-red-600' :
+              index % 6 === 2 ? 'bg-gradient-to-br from-green-400 to-blue-600' :
+              index % 6 === 3 ? 'bg-gradient-to-br from-purple-400 to-indigo-600' :
+              index % 6 === 4 ? 'bg-gradient-to-br from-yellow-400 to-orange-600' :
+              'bg-gradient-to-br from-red-400 to-pink-600'
+            }`} style={spot.backgroundImage ? `background-image: url('${spot.backgroundImage}')` : ''}>
+              {spot.backgroundImage ? (
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                  <span class="text-6xl text-white drop-shadow-lg">{spot.icon}</span>
+                </div>
+              ) : (
+                <span class="text-6xl">{spot.icon}</span>
+              )}
             </div>
             <div class="p-6">
               <h3 class="text-xl font-bold text-gray-800 mb-4">{spot.title}</h3>
@@ -371,10 +383,17 @@ const returnSpots = allSpots.filter(spot => spot.title.includes('帰り道') || 
           <div class="grid md:grid-cols-2 gap-8">
             {returnSpots.map((spot, index) => (
               <div class="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-                <div class={`h-48 bg-gradient-to-br flex items-center justify-center ${
-                  index % 2 === 0 ? 'from-gray-400 to-gray-600' : 'from-yellow-400 to-amber-600'
-                }`}>
-                  <span class="text-6xl">{spot.icon}</span>
+                <div class={`h-48 flex items-center justify-center relative overflow-hidden ${
+                  spot.backgroundImage ? 'bg-cover bg-center' : 
+                  index % 2 === 0 ? 'bg-gradient-to-br from-gray-400 to-gray-600' : 'bg-gradient-to-br from-yellow-400 to-amber-600'
+                }`} style={spot.backgroundImage ? `background-image: url('${spot.backgroundImage}')` : ''}>
+                  {spot.backgroundImage ? (
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <span class="text-6xl text-white drop-shadow-lg">{spot.icon}</span>
+                    </div>
+                  ) : (
+                    <span class="text-6xl">{spot.icon}</span>
+                  )}
                 </div>
                 <div class="p-6">
                   <h4 class="text-xl font-bold text-gray-800 mb-4">{spot.title}</h4>
