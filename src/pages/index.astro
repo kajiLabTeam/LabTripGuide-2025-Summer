@@ -43,37 +43,68 @@ const parseScheduleItems = (content: string) => {
     participants: string;
     link: string;
   }> = [];
-  const lines = content.split('\n');
-  let currentItem: any = null;
   
-  for (const line of lines) {
-    const timeMatch = line.match(/^## (\d{1,2}:\d{2}) - (.+)$/);
-    if (timeMatch) {
-      if (currentItem) items.push(currentItem);
-      currentItem = {
-        time: timeMatch[1],
-        title: timeMatch[2],
-        details: [],
-        participants: '',
-        link: ''
-      };
-    } else if (currentItem && line.trim().startsWith('-')) {
-      const detail = line.trim().substring(1).trim();
-      if (detail.includes('**参加者**:')) {
-        currentItem.participants = detail.split('**参加者**:')[1].trim();
-      } else if (detail.includes('**詳細**:')) {
-        currentItem.details.push(detail.split('**詳細**:')[1].trim());
-      } else if (detail.includes('**リンク**:')) {
-        currentItem.link = detail.split('**リンク**:')[1].trim();
+  // より柔軟な正規表現で時間とタイトルをマッチ（~を含む時間形式も対応）
+  const scheduleMatches = content.match(/^## ([\d:~]+) - (.+)$/gm);
+  
+  if (scheduleMatches) {
+    for (const match of scheduleMatches) {
+      const timeMatch = match.match(/^## ([\d:~]+) - (.+)$/);
+      if (timeMatch) {
+        const time = timeMatch[1];
+        const title = timeMatch[2];
+        
+        // この項目の詳細を取得
+        const itemStart = content.indexOf(match);
+        const nextItemMatch = content.substring(itemStart + match.length).match(/^## /m);
+        const itemEnd = nextItemMatch ? itemStart + match.length + nextItemMatch.index! : content.length;
+        const itemContent = content.substring(itemStart, itemEnd);
+        
+        const details: string[] = [];
+        let participants = '';
+        let link = '';
+        
+        // 詳細情報を解析
+        const detailMatches = itemContent.match(/^- \*\*([^:]+)\*\*: (.+)$/gm);
+        if (detailMatches) {
+          for (const detailMatch of detailMatches) {
+            const detailParts = detailMatch.match(/^- \*\*([^:]+)\*\*: (.+)$/);
+            if (detailParts) {
+              const key = detailParts[1];
+              const value = detailParts[2];
+              
+              if (key === '参加者') {
+                participants = value;
+              } else if (key === '詳細') {
+                details.push(value);
+              } else if (key === 'リンク') {
+                link = value;
+              }
+            }
+          }
+        }
+        
+        console.log('Parsed item:', { time, title, details, participants, link });
+        items.push({
+          time,
+          title,
+          details,
+          participants,
+          link
+        });
       }
     }
   }
-  if (currentItem) items.push(currentItem);
+  
   return items;
 };
 
 const day1Items = day1Match ? parseScheduleItems(day1Match[1]) : [];
 const day2Items = day2Match ? parseScheduleItems(day2Match[1]) : [];
+
+// デバッグ情報を追加
+console.log('Day 1 Items:', day1Items);
+console.log('Day 2 Items:', day2Items);
 
 // 観光スポットデータを解析
 const spotsContent = spots.body;
@@ -209,24 +240,7 @@ const returnSpots = allSpots.filter(spot => spot.title.includes('帰り道') || 
           <h3 class="text-3xl font-bold text-blue-600">一日目</h3>
         </div>
         <div class="grid md:grid-cols-2 gap-8">
-          {day1Items.slice(0, Math.ceil(day1Items.length / 2)).map((item, index) => (
-            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div class="flex items-center mb-4">
-                <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-blue-500' : index % 4 === 1 ? 'bg-green-500' : index % 4 === 2 ? 'bg-purple-500' : 'bg-orange-500'}`}></div>
-                <span class={`font-bold ${index % 4 === 0 ? 'text-blue-600' : index % 4 === 1 ? 'text-green-600' : index % 4 === 2 ? 'text-purple-600' : 'text-orange-600'}`}>{item.time}</span>
-              </div>
-              <h4 class="text-lg font-semibold mb-2">{item.title}</h4>
-              <p class="text-gray-600 mb-3">{item.details.join(', ')}</p>
-              {item.link && (
-                <a href={item.link} target="_blank" class="text-blue-600 hover:underline text-sm">
-                  詳細を見る →
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-        <div class="grid md:grid-cols-2 gap-8 mt-8">
-          {day1Items.slice(Math.ceil(day1Items.length / 2)).map((item, index) => (
+          {day1Items.filter(item => item.title && item.time).map((item, index) => (
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div class="flex items-center mb-4">
                 <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-blue-500' : index % 4 === 1 ? 'bg-green-500' : index % 4 === 2 ? 'bg-purple-500' : 'bg-orange-500'}`}></div>
@@ -253,24 +267,7 @@ const returnSpots = allSpots.filter(spot => spot.title.includes('帰り道') || 
           <h3 class="text-3xl font-bold text-green-600">二日目</h3>
         </div>
         <div class="grid md:grid-cols-2 gap-8">
-          {day2Items.slice(0, Math.ceil(day2Items.length / 2)).map((item, index) => (
-            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div class="flex items-center mb-4">
-                <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-green-500' : index % 4 === 1 ? 'bg-red-500' : index % 4 === 2 ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
-                <span class={`font-bold ${index % 4 === 0 ? 'text-green-600' : index % 4 === 1 ? 'text-red-600' : index % 4 === 2 ? 'text-blue-600' : 'text-purple-600'}`}>{item.time}</span>
-              </div>
-              <h4 class="text-lg font-semibold mb-2">{item.title}</h4>
-              <p class="text-gray-600 mb-3">{item.details.join(', ')}</p>
-              {item.link && (
-                <a href={item.link} target="_blank" class="text-blue-600 hover:underline text-sm">
-                  詳細を見る →
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-        <div class="grid md:grid-cols-2 gap-8 mt-8">
-          {day2Items.slice(Math.ceil(day2Items.length / 2)).map((item, index) => (
+          {day2Items.filter(item => item.title && item.time).map((item, index) => (
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div class="flex items-center mb-4">
                 <div class={`w-3 h-3 rounded-full mr-3 ${index % 4 === 0 ? 'bg-green-500' : index % 4 === 1 ? 'bg-red-500' : index % 4 === 2 ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
