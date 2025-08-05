@@ -4,7 +4,7 @@ subtitle: "古民家リノベーション宿「飛騨の里」"
 description: "古民家リノベーション宿「飛騨の里」の詳細情報"
 date: "2025-08-07"
 location: "岐阜県高山市"
-participants: "16名様"
+participants: "20名様"
 duration: "1泊2日 , Check in 15:00 , Check out 10:00"
 heroImage: "/images/takayama-street.jpg"
 tags: ["宿泊", "古民家", "自炊"]
