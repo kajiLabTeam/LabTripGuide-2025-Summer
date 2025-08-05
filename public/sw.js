@@ -7,6 +7,12 @@ const urlsToCache = [
   '/favicon.svg'
 ];
 
+// キャッシュしないリクエスト
+const skipCacheUrls = [
+  '/sw.js',
+  '/register-sw.js'
+];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -17,24 +23,34 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const requestUrl = new URL(event.request.url);
+  
   // chrome-extensionスキームは無視
-  if (event.request.url.startsWith('chrome-extension://')) {
+  if (requestUrl.protocol === 'chrome-extension:') {
+    return;
+  }
+  
+  // Service Workerファイル自体はキャッシュしない
+  if (skipCacheUrls.some(url => requestUrl.pathname.includes(url))) {
     return;
   }
   
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
+      .then((cachedResponse) => {
         // キャッシュに存在する場合はキャッシュを返す
-        if (response) {
-          return response;
+        if (cachedResponse) {
+          return cachedResponse;
         }
         
         // キャッシュにない場合はネットワークから取得
-        return fetch(event.request)
+        return fetch(event.request, {
+          redirect: 'follow', // リダイレクトを明示的に許可
+          mode: 'cors' // CORSモードを明示的に設定
+        })
           .then((response) => {
             // 有効なレスポンスでない場合はそのまま返す
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            if (!response || response.status !== 200) {
               return response;
             }
             
@@ -43,9 +59,17 @@ self.addEventListener('fetch', (event) => {
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
+              })
+              .catch((cacheError) => {
+                console.error('Cache error:', cacheError);
               });
             
             return response;
+          })
+          .catch((error) => {
+            console.error('Fetch error:', error);
+            // エラーの場合はキャッシュから取得を試行
+            return caches.match(event.request);
           });
       })
   );
