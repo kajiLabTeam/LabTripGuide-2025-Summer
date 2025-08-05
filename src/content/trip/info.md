@@ -1,7 +1,7 @@
 ---
 title: "飛騨高山研究室旅行"
 subtitle: "2025年夏の思い出作り"
-date: "2025-08-04"
+date: "2025-08-07 ~ 2025-08-08"
 location: "岐阜県飛騨市・高山市"
 participants: "研究室メンバー"
 transportation: "車"
