@@ -525,7 +525,7 @@ console.log('Return Spots:', returnSpots);
             </li>
             <li class="flex items-center">
               <span class="w-3 h-3 bg-blue-500 rounded-full mr-4"></span>
-              <strong class="mr-2">交通手段:</strong> {info.data.transportation}
+              <strong class="mr-2">交通手段:</strong> 車
             </li>
           </ul>
         </div>
@@ -663,6 +663,115 @@ console.log('Return Spots:', returnSpots);
         </div>
       </section>
     )}
+
+              <!-- 駐車場情報セクション -->
+     <section class="py-16 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-3xl mx-4">
+       <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold text-gray-800 mb-4 animate-fade-in">🚗 駐車場情報</h2>
+          <p class="text-xl text-gray-600 animate-fade-in-delay">旅行中の駐車場について</p>
+        </div>
+
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl animate-fade-in-delay-2">
+          <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <!-- コインパーキング情報 -->
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+              <h3 class="text-2xl font-bold text-blue-800 mb-4 flex items-center">
+                <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                コインパーキングの利用
+              </h3>
+              <p class="text-gray-700 mb-4">
+                旅行中は<strong class="text-blue-600">コインパーキング</strong>を利用して駐車場を探してください。
+              </p>
+              <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <h4 class="font-bold text-blue-800 mb-2">推奨アプリ: pppark</h4>
+                <p class="text-sm text-gray-600 mb-3">
+                  駐車場を探す際は、<strong>pppark</strong>というアプリを使用してください。
+                </p>
+                <ul class="text-sm text-gray-700 space-y-1">
+                  <li class="flex items-start">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-2"></span>
+                    全国のコインパーキング情報を網羅
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-2"></span>
+                    リアルタイムで空き状況を確認可能
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-2"></span>
+                    料金や営業時間も事前に確認できる
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-2"></span>
+                    ナビゲーション機能付きで目的地まで案内
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 駐車時間の推奨 -->
+            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+              <h3 class="text-2xl font-bold text-green-800 mb-4 flex items-center">
+                <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                駐車時間の推奨
+              </h3>
+              <div class="bg-green-50 rounded-xl p-4 border border-green-200">
+                <p class="text-gray-700 mb-3">
+                  <strong class="text-green-600">止めた時間から明日の15時ぐらいまで止めれるようにするといいと思います。</strong>
+                </p>
+                <p class="text-sm text-gray-600">
+                  長時間駐車することで、観光中に駐車場を探す手間を省くことができます。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 注意事項 -->
+          <div class="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-2xl p-6">
+            <h4 class="text-lg font-bold text-orange-800 mb-4 flex items-center">
+              <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+              注意事項
+            </h4>
+            <ul class="text-gray-700 space-y-3">
+              <li class="flex items-start">
+                <span class="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
+                <div>
+                  <strong class="text-orange-700">事前確認:</strong> 
+                  <span class="text-gray-600">各観光地の駐車場情報を事前にppparkで確認</span>
+                </div>
+              </li>
+              <li class="flex items-start">
+                <span class="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
+                <div>
+                  <strong class="text-orange-700">料金確認:</strong> 
+                  <span class="text-gray-600">駐車料金は事前に確認して予算に含める</span>
+                </div>
+              </li>
+              <li class="flex items-start">
+                <span class="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
+                <div>
+                  <strong class="text-orange-700">営業時間:</strong> 
+                  <span class="text-gray-600">夜間営業しているかどうかも確認</span>
+                </div>
+              </li>
+              <li class="flex items-start">
+                <span class="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
+                <div>
+                  <strong class="text-orange-700">安全運転:</strong> 
+                  <span class="text-gray-600">駐車場での事故やトラブルには十分ご注意ください</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- フッター -->
     <footer class="text-center py-16">
