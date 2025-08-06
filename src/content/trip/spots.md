@@ -1,5 +1,6 @@
 ---
 title: "観光スポット"
+type: "spot"
 description: "飛騨高山の魅力を満喫 created by tada"
 ---
 

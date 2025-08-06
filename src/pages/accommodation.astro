@@ -9,6 +9,14 @@ const accommodation = tripInfo.find(item => item.id === 'accommodation.md');
 if (!accommodation) {
   throw new Error('accommodation.mdファイルが見つかりません');
 }
+
+// 宿泊情報の型ガード
+if (accommodation.data.type !== 'accommodation') {
+  throw new Error('accommodation.mdは宿泊情報タイプである必要があります');
+}
+
+// Markdownコンテンツをレンダリング
+const { Content } = await accommodation.render();
 ---
 
 <Layout title={accommodation.data.title}>
@@ -86,27 +94,27 @@ if (!accommodation) {
             <ul class="space-y-4 text-gray-700">
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">宿名:</strong> 古民家リノベーション宿「飛騨の里」
+                <strong class="mr-2">宿名:</strong> {accommodation.data.basicInfo?.name}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">住所:</strong> 岐阜県高山市
+                <strong class="mr-2">住所:</strong> {accommodation.data.basicInfo?.address}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">宿泊日:</strong> 2025年8月7日〜8月8日
+                <strong class="mr-2">宿泊日:</strong> {accommodation.data.basicInfo?.dates}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">宿泊人数:</strong> 16名様
+                <strong class="mr-2">宿泊人数:</strong> {accommodation.data.basicInfo?.guests}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">チェックイン:</strong> 15:00〜
+                <strong class="mr-2">チェックイン:</strong> {accommodation.data.basicInfo?.checkin}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">チェックアウト:</strong> 10:00
+                <strong class="mr-2">チェックアウト:</strong> {accommodation.data.basicInfo?.checkout}
               </li>
             </ul>
           </div>
@@ -119,15 +127,15 @@ if (!accommodation) {
             <ul class="space-y-4 text-gray-700">
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">車:</strong> 高山ICから約15分
+                <strong class="mr-2">車:</strong> {accommodation.data.access?.car}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">電車:</strong> 高山駅からタクシーで約10分
+                <strong class="mr-2">電車:</strong> {accommodation.data.access?.train}
               </li>
               <li class="flex items-center">
                 <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">バス:</strong> 高山駅からバスで約15分
+                <strong class="mr-2">バス:</strong> {accommodation.data.access?.bus}
               </li>
             </ul>
             
@@ -136,19 +144,19 @@ if (!accommodation) {
               <ul class="space-y-2 text-sm text-gray-700">
                 <li class="flex items-center">
                   <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                  <strong class="mr-2">銭湯ゆーとぴあ:</strong> 徒歩圏内
+                  <strong class="mr-2">銭湯ゆーとぴあ:</strong> {accommodation.data.nearby?.yutopia}
                 </li>
                 <li class="flex items-center">
                   <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                  <strong class="mr-2">スーパー:</strong> 車で5分
+                  <strong class="mr-2">スーパー:</strong> {accommodation.data.nearby?.supermarket}
                 </li>
                 <li class="flex items-center">
                   <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                  <strong class="mr-2">高山陣屋:</strong> 車で10分
+                  <strong class="mr-2">高山陣屋:</strong> {accommodation.data.nearby?.jinya}
                 </li>
                 <li class="flex items-center">
                   <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                  <strong class="mr-2">高山市街:</strong> 車で15分
+                  <strong class="mr-2">高山市街:</strong> {accommodation.data.nearby?.downtown}
                 </li>
               </ul>
             </div>
@@ -174,35 +182,35 @@ if (!accommodation) {
             <div class="grid grid-cols-1 gap-3 text-sm">
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">キッチン:</strong> 完備（自炊可能）
+                <strong class="mr-2">キッチン:</strong> {accommodation.data.facilities?.kitchen}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">温泉:</strong> 近隣の銭湯利用可能
+                <strong class="mr-2">温泉:</strong> {accommodation.data.facilities?.onsen}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">Wi-Fi:</strong> 無料
+                <strong class="mr-2">Wi-Fi:</strong> SSID: {accommodation.data.facilities?.wifi_ssid}, PASS: {accommodation.data.facilities?.wifi_pass}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">駐車場:</strong> 完備
+                <strong class="mr-2">駐車場:</strong> {accommodation.data.facilities?.parking}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">洗濯機:</strong> 利用可能
+                <strong class="mr-2">洗濯機:</strong> {accommodation.data.facilities?.laundry}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">冷暖房:</strong> 完備
+                <strong class="mr-2">冷暖房:</strong> {accommodation.data.facilities?.aircon}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">ベッド:</strong> 16名様分
+                <strong class="mr-2">ベッド:</strong> {accommodation.data.facilities?.beds}
               </div>
               <div class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">バスルーム:</strong> 複数箇所
+                <strong class="mr-2">バスルーム:</strong> {accommodation.data.facilities?.bathroom}
               </div>
             </div>
           </div>
@@ -247,15 +255,15 @@ if (!accommodation) {
             <ul class="space-y-3 text-gray-700">
               <li class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">宿泊料金:</strong> 16名様で宿泊
+                <strong class="mr-2">宿泊料金:</strong> {accommodation.data.plan?.rate}
               </li>
               <li class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">食事:</strong> 自炊（キッチン完備）
+                <strong class="mr-2">食事:</strong> {accommodation.data.plan?.meals}
               </li>
               <li class="flex items-center">
                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                <strong class="mr-2">追加サービス:</strong> 温泉利用券付き
+                <strong class="mr-2">追加サービス:</strong> {accommodation.data.plan?.extras}
               </li>
             </ul>
           </div>
@@ -367,22 +375,12 @@ if (!accommodation) {
               一日目
             </h3>
             <ul class="space-y-4 text-gray-700">
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">17:00:</strong> 宿着
-              </li>
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">17:30:</strong> お料理 vs 銭湯
-              </li>
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">19:00:</strong> 夜ご飯
-              </li>
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">20:00:</strong> レクリエーション
-              </li>
+              {accommodation.data.schedule?.day1.map((item) => (
+                <li class="flex items-center">
+                  <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
+                  <strong class="mr-2">{item.time}:</strong> {item.activity}
+                </li>
+              ))}
             </ul>
           </div>
           
@@ -392,18 +390,12 @@ if (!accommodation) {
               二日目
             </h3>
             <ul class="space-y-4 text-gray-700">
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">翌日8:30:</strong> 起床
-              </li>
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">翌日9:00:</strong> 朝ごはん
-              </li>
-              <li class="flex items-center">
-                <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
-                <strong class="mr-2">翌日10:00:</strong> チェックアウト
-              </li>
+              {accommodation.data.schedule?.day2.map((item) => (
+                <li class="flex items-center">
+                  <span class="w-3 h-3 bg-purple-500 rounded-full mr-4"></span>
+                  <strong class="mr-2">{item.time}:</strong> {item.activity}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -420,22 +412,12 @@ if (!accommodation) {
       <div class="bg-gradient-to-br from-red-50 to-pink-100 rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-500">
         <div class="bg-red-50 rounded-lg p-6">
           <ul class="space-y-4 text-gray-700">
-            <li class="flex items-start">
-              <span class="w-3 h-3 bg-red-500 rounded-full mr-4 mt-2"></span>
-              チェックイン前に宿の場所を確認
-            </li>
-            <li class="flex items-start">
-              <span class="w-3 h-3 bg-red-500 rounded-full mr-4 mt-2"></span>
-              食材の買い出しは事前に計画
-            </li>
-            <li class="flex items-start">
-              <span class="w-3 h-3 bg-red-500 rounded-full mr-4 mt-2"></span>
-              温泉利用時はタオル持参
-            </li>
-            <li class="flex items-start">
-              <span class="w-3 h-3 bg-red-500 rounded-full mr-4 mt-2"></span>
-              ゴミの分別をお願いします
-            </li>
+            {accommodation.data.notes?.map((note) => (
+              <li class="flex items-start">
+                <span class="w-3 h-3 bg-red-500 rounded-full mr-4 mt-2"></span>
+                {note}
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -451,7 +433,7 @@ if (!accommodation) {
       <div class="bg-gradient-to-br from-purple-50 to-pink-100 rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-500">
         <div class="flex flex-wrap justify-center gap-4">
           <a 
-            href="https://www.airbnb.jp/rooms/1414994496684608962" 
+            href={accommodation.data.links?.airbnb} 
             target="_blank" 
             class="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors font-semibold"
           >
@@ -461,7 +443,7 @@ if (!accommodation) {
             Airbnbで詳細を見る
           </a>
           <a 
-            href="https://maps.app.goo.gl/s6vzWKBscRW8Sb2P6" 
+            href={accommodation.data.links?.map} 
             target="_blank" 
             class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors font-semibold"
           >
@@ -472,7 +454,7 @@ if (!accommodation) {
             地図で場所を確認
           </a>
           <a 
-            href="https://yutopia-takayama.net/" 
+            href={accommodation.data.links?.yutopia} 
             target="_blank" 
             class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors font-semibold"
           >
@@ -485,10 +467,19 @@ if (!accommodation) {
       </div>
     </section>
 
+    <!-- Markdownコンテンツセクション -->
+    <section class="mb-24">
+      <div class="bg-gradient-to-br from-blue-50 to-purple-100 rounded-3xl shadow-2xl p-8">
+        <div class="prose prose-lg max-w-none">
+          <Content />
+        </div>
+      </div>
+    </section>
+
     <!-- フッター -->
     <footer class="text-center py-16">
       <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl p-8 text-white">
-        <h3 class="text-3xl font-bold mb-4">🏠 {accommodation.data.subtitle}</h3>
+        <h3 class="text-3xl font-bold mb-4">🏠 {accommodation.data.basicInfo?.name || accommodation.data.subtitle}</h3>
         <p class="text-xl opacity-90">素晴らしい宿泊体験をお楽しみください！</p>
       </div>
     </footer>

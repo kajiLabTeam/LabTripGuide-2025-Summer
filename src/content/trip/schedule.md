@@ -1,5 +1,6 @@
 ---
 title: "スケジュール"
+type: "schedule"
 description: "2日間の楽しい旅の予定"
 ---
 
